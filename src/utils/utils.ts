@@ -1,5 +1,5 @@
 import CryptoJS from "crypto-js";
-import { CardType } from "../types/types";
+import { CardType, UsersPlayingType } from "../types/types";
 export const encrypt = (data) => {
   const passphrase = "123";
   try{
@@ -57,7 +57,7 @@ export const isEquivalent = (a: CardType, b: CardType) => {
   // are considered equivalent
   return true;
 }
-export const getNeighbours = (length : number, seat : number) => {
+export const getNeighbours = (playing_list : UsersPlayingType[], seat : number) => {
   seat = (seat + 1) % length;
   let left = seat - 1;
   let right = seat + 1;

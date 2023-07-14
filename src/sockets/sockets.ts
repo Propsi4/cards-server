@@ -3,6 +3,9 @@ import { CardType, MessageType } from "../types/types";
 import rooms from "../store/rooms";
 import { getUsernamefromToken, isEquivalent, getNeighbours } from "./../utils/utils";
 import { cards } from "./../cards/cards";
+import {attack} from "../cards/attack";
+import {defend} from "../cards/defend";
+
 const socketConnetion = (server: any) => {
   const io = new socketIO.Server(server);
 
@@ -63,50 +66,56 @@ const socketConnetion = (server: any) => {
         );
         if (!user) return;
         if (!card || cardPos === null) return;
-        if(Object.keys(rooms[roomID].neighbours).length === 0) rooms[roomID].neighbours = getNeighbours(rooms[roomID].playing_list.length, 0);
-        if(![rooms[roomID].neighbours.left,rooms[roomID].neighbours.right].includes(user.seat)){
-          console.log("not in neighbours")
-        } else{
-          console.log("in neighbours")
+        // if(Object.keys(rooms[roomID].neighbours).length === 0) rooms[roomID].neighbours = getNeighbours(rooms[roomID].playing_list, rooms[roomID].playing_list[1].seat);
+        if([rooms[roomID].neighbours.left,rooms[roomID].neighbours.right].includes(user.seat)){
+          console.log("attack")
+          if(!attack(roomID,card,cardPos)) return
         }
+        else if(rooms[roomID].neighbours.defender == user.seat){
+          console.log("defend")
+          if(!defend(roomID,card,cardPos)) return
+        }
+        console.log(rooms[roomID].neighbours.left, rooms[roomID].neighbours.right)
         // checks if all the obj in the array are null
-        const isAllNull = rooms[roomID].cards_on_table.every((obj) => {
-          return Object.keys(obj).length === 0;
-        });
-        if(isAllNull && user.seat !== rooms[roomID].neighbours.left) return;
-        if (rooms[roomID].cards_on_table[cardPos]?.value) {
-          if (
-            card?.suit !== rooms[roomID].trump_suit &&
-            rooms[roomID].cards_on_table[cardPos].suit ===
-              rooms[roomID].trump_suit
-          )
-            return;
-          if (
-            card?.suit === rooms[roomID].trump_suit &&
-            rooms[roomID].cards_on_table[cardPos].suit ===
-              rooms[roomID].trump_suit &&
-            card?.value <= rooms[roomID].cards_on_table[cardPos].value
-          )
-            return;
-          if (
-            card?.suit !== rooms[roomID].trump_suit &&
-            rooms[roomID].cards_on_table[cardPos].suit !==
-              rooms[roomID].trump_suit &&
-            card?.value <= rooms[roomID].cards_on_table[cardPos].value
-          )
-            return;
-          if (
-            card?.suit !== rooms[roomID].trump_suit &&
-            card?.suit !== rooms[roomID].cards_on_table[cardPos].suit
-          )
-            return;
-        }
+        // const isAllNull = rooms[roomID].cards_on_table.every((obj) => {
+        //   return Object.keys(obj).length === 0;
+        // });
+        // if(isAllNull && user.seat !== rooms[roomID].neighbours.left) return;
+        // if (rooms[roomID].cards_on_table[cardPos]?.value) {
+        //   if (
+        //     card?.suit !== rooms[roomID].trump_suit &&
+        //     rooms[roomID].cards_on_table[cardPos].suit ===
+        //       rooms[roomID].trump_suit
+        //   )
+        //     return;
+        //   if (
+        //     card?.suit === rooms[roomID].trump_suit &&
+        //     rooms[roomID].cards_on_table[cardPos].suit ===
+        //       rooms[roomID].trump_suit &&
+        //     card?.value <= rooms[roomID].cards_on_table[cardPos].value
+        //   )
+        //     return;
+        //   if (
+        //     card?.suit !== rooms[roomID].trump_suit &&
+        //     rooms[roomID].cards_on_table[cardPos].suit !==
+        //       rooms[roomID].trump_suit &&
+        //     card?.value <= rooms[roomID].cards_on_table[cardPos].value
+        //   )
+        //     return;
+        //   if (
+        //     card?.suit !== rooms[roomID].trump_suit &&
+        //     card?.suit !== rooms[roomID].cards_on_table[cardPos].suit
+        //   )
+        //     return;
+        // }
+
         // checks if object is equivalent
         user.cards = user.cards.filter(
           (user_card) => !isEquivalent(user_card, card)
         );
         // rooms[roomID].neighbours = getNeighbours(rooms[roomID].playing_list.length, rooms[roomID].neighbours.defender);
-        io.to(roomID).emit("neighbours", rooms[roomID].neighbours);
+
+        // io.to(roomID).emit("neighbours", rooms[roomID].neighbours);
         io.to(user.socketID).emit("get_cards", {
           cards: user.cards,
           trump_suit: rooms[roomID].trump_suit,
@@ -117,15 +126,19 @@ const socketConnetion = (server: any) => {
     );
 
     socket.on("reset_cards", (roomID: string, token: string) => {
-      if (!rooms[roomID] || rooms[roomID].owner.token !== token) {
-        return;
-      }
-      rooms[roomID].neighbours = getNeighbours(rooms[roomID].playing_list.length,0);
+
+      if (!rooms[roomID] || rooms[roomID].owner.token !== token) return;
+      if(rooms[roomID].playing_list.length < 2) return;
+      rooms[roomID].playing_list.sort((a,b) => a.seat - b.seat)
+      rooms[roomID].neighbours = getNeighbours(rooms[roomID].playing_list,rooms[roomID].playing_list[1].seat);
       io.to(roomID).emit("neighbours", rooms[roomID].neighbours);
       cards.createCards();
       cards.shuffleCards();
       rooms[roomID].unused_cards = cards.getCards();
       rooms[roomID].trump_suit = cards.getTrumpSuit();
+
+      rooms[roomID].cards_on_table = Array(5).fill({});
+      io.to(roomID).emit("cards_on_table", rooms[roomID].cards_on_table);
       rooms[roomID].playing_list.forEach((user) => {
         user.cards = rooms[roomID].unused_cards.splice(0, 6);
         io.to(user.socketID).emit("get_cards", {
