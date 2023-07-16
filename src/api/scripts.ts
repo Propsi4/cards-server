@@ -43,6 +43,10 @@ export const canJoin = (req, res) => {
 
 export const getToken = (req, res) => {
   const { username } = req.body;
+  if(!username){
+    res.status(400).json({ error: "Invalid username" });
+    return
+  }
   if(username.length < 3 || username.length > 10 ){
     res.status(400).json({ error: "Invalid username" });
     return;
