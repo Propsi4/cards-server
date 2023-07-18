@@ -52,7 +52,15 @@ export const canJoin = (req, res) => {
 
 export const getToken = (req, res) => {
   const { username } = req.body;
+<<<<<<< HEAD
   if(!validateUsername(username)){
+=======
+  if(!username){
+    res.status(400).json({ error: "Invalid username" });
+    return
+  }
+  if(username.length < 3 || username.length > 10 ){
+>>>>>>> ad1654cdb2fe20981acde2e5e6c883018d0d7693
     res.status(400).json({ error: "Invalid username" });
     return;
   }
