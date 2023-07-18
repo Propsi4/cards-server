@@ -32,8 +32,8 @@ export interface RoomsType {
         turn: number ,
         owner: {token: string, username: string},
         playing_list: UsersPlayingType[],
-        cards_on_table: CardType[],
-        unused_cards: CardType[]
+        unused_cards: CardType[],
+        clear_on_end: boolean,
         typing: string[]
     }
 }

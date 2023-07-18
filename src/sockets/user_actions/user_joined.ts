@@ -35,7 +35,6 @@ export const user_joined = (io, roomID : string, token : string, socket) => {
         owner: rooms[roomID].owner.username,
         username: username,
         playing_list: rooms[roomID].playing_list,
-        cards_on_table: rooms[roomID].cards_on_table,
         turn: rooms[roomID].turn
       });
     }

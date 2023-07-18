@@ -1,6 +1,15 @@
 import rooms from "../store/rooms";
 import { encrypt, decrypt } from "../utils/utils";
 import { getUsernamefromToken } from "./../utils/utils";
+
+const validateUsername = (username) => {
+  if (username.length < 3 || username.length > 10) {
+    return false;
+  }
+  const regex = /^[a-zA-Z0-9]+$/;
+  return regex.test(username);
+};
+
 export const createRoom = (req, res) => {
   const roomID = Date.now().toString().slice(9);
   const { token } = req.body;
@@ -15,7 +24,7 @@ export const createRoom = (req, res) => {
     playing_list: [],
     turn: 0,
     unused_cards: [],
-    cards_on_table: Array(2).fill({}),
+    clear_on_end: true,
     owner : {token : token, username : getUsernamefromToken(token)}
   };
   res.json({ roomID: roomID });
@@ -43,7 +52,7 @@ export const canJoin = (req, res) => {
 
 export const getToken = (req, res) => {
   const { username } = req.body;
-  if(username.length < 3 || username.length > 10 ){
+  if(!validateUsername(username)){
     res.status(400).json({ error: "Invalid username" });
     return;
   }
@@ -99,3 +108,15 @@ export const users = (req, res) => {
     }
   }
 };
+export const getRooms = (req, res) => {
+  // return number of players and roomID
+  // Object.keys(rooms).forEach((roomID) => {
+  //   return { roomID: roomID, users: rooms[roomID].users.length };
+  // });
+
+  res.json(
+    Object.keys(rooms).map((roomID) => {
+      return { roomID: roomID, users: rooms[roomID].users.length };
+    }
+  ));
+  }

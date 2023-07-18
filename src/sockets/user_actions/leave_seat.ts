@@ -15,9 +15,10 @@ export const leave_seat = (io, roomID : string, token : string) => {
       // if someone left while playing, announce winner
       // if anyone have points
       if(rooms[roomID].playing_list.filter((user) => user.points > 0).length){
-        end_game(io, roomID);
+        let winner = rooms[roomID].playing_list.filter((another_user) => another_user.username !== user.username)[0]
+        end_game(io, roomID, winner);
+        return
       }
-    
 
     rooms[roomID].playing_list = rooms[roomID].playing_list.filter(
       (user) => user.username !== current_user.username

@@ -10,7 +10,8 @@ import { pass } from "./card_actions/pass";
 import { take_card } from "./card_actions/take_card";
 import { leave_seat } from "./user_actions/leave_seat";
 import { take_seat } from "./user_actions/take_seat";
-
+import { left_room } from "./user_actions/left_room";
+import { clear_on_end } from "./user_actions/clear_on_end";
 const socketConnetion = (server: any) => {
   const io = new socketIO.Server(server);
 
@@ -35,7 +36,7 @@ const socketConnetion = (server: any) => {
     });
 
     socket.on("alive", (roomID: string, token: string) => {
-      alive(io, roomID, token);
+      alive(io,socket, roomID, token);
     });
 
     socket.on("typing", (roomID: string, token: string) => {
@@ -49,9 +50,15 @@ const socketConnetion = (server: any) => {
     socket.on("new_message", (roomID: string, message: MessageType) => {
       new_message(io, roomID, message);
     });
+
+    socket.on("left_room", (roomID: string, socketID: string) => {
+      left_room(io, socket, roomID, socketID);
+  });
+    socket.on("clear_on_end", (roomID: string, token: string, setting: boolean) => {
+      clear_on_end(roomID, token, setting);
+    });
   });
 };
-
 // Баг з показом карт
 
 export default socketConnetion;

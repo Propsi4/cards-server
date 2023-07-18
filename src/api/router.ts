@@ -1,5 +1,5 @@
 import express,{Router} from 'express'
-import {createRoom, canJoin, joinRoom, users, getToken, getUsername } from './scripts'
+import {createRoom, canJoin, joinRoom, users, getToken, getUsername, getRooms } from './scripts'
 const router = Router()
 router.use(express.json())
 
@@ -21,5 +21,8 @@ router.post("/api/users", async(req, res) => {
 })
 router.post("/api/get_token", async(req, res) => {
   await getToken(req,res)
+})
+router.post("/api/rooms", async(req, res) => {
+  await getRooms(req,res)
 })
 export default router
